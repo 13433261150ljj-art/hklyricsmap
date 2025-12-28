@@ -2,103 +2,181 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 #map {
   width: 100%;
-  height: 100vh; /* 关键：适配 StoryMap */
+  height: 100vh;
+  /* 背景设为浅灰色，作为海洋的补底颜色 */
+  background-color: #d9d9d9; 
 }
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap');
 
+
+/* --- 核心滤镜修改 --- */
+.amap-layer {
+    /* 
+       1. grayscale(100%): 保持黑白风格。
+       2. contrast(1.1): 对比度不要太高，太高会把细线“吃掉”。1.1 刚刚好。
+       3. 去掉了 brightness: 之前的提亮导致浅色道路看不见了。
+    */
+    filter: grayscale(100%) contrast(1.1) !important;
+    
+    /* 混合模式保持 normal 即可，保证清晰度 */
+    mix-blend-mode: normal;
+}
+
+/* --- 以下弹窗和Marker样式保持不变，确保清晰度 --- */
+
+/* --- 引入字体 (如果前面没有引入，请保留这行) --- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap');
+
+/* --- 弹窗样式：便利贴/信纸风格 --- */
 .hk-lyric-window {
-    width: 320px;
-    background-color: #f6f4ec;
-    color: #2b2b2b;
+    width: auto;
+    min-width: 280px;
+    max-width: 360px;
+    
+    /* 核心：信纸横线背景 */
+    background-color: #fffef9; /* 暖白纸张 */
+    background-image: 
+        linear-gradient(90deg, transparent 29px, #ea5a5a 29px, #ea5a5a 30px, transparent 30px), /* 左侧红竖线 */
+        linear-gradient(#e1e1e1 1px, transparent 1px); /* 灰色横线 */
+    background-size: 100% 100%, 100% 30px; /* 行高 30px，控制线间距 */
+    background-attachment: local;
+    
+    color: #333;
     font-family: 'Noto Serif SC', 'Songti SC', serif;
+    font-size: 16px;
+    line-height: 30px; /* 必须与背景行高一致，让文字落在格线上 */
+    
+    padding: 30px 20px 20px 40px; /* 左侧留出红线空间 */
     position: relative;
-    box-shadow: 4px 4px 0px rgba(43, 43, 43, 0.8), 0 0 15px rgba(0,0,0,0.1);
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+    
+    /* 纸张翘起的阴影 */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    
+    /* 初始状态：用于动画 */
+    opacity: 0;
+    transform: translateY(10px) rotate(-1deg);
+    transform-origin: top center;
+    z-index: 9999; /* 保证在最上层 */
+    pointer-events: auto; /* 确保可以点击 */
 }
 
-.hk-inner-border {
-    border: 1px solid #2b2b2b;
-    margin: 6px;
-    padding: 25px 20px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.hk-inner-border::before {
+/* 顶部透明胶带效果 */
+.hk-lyric-window::after {
     content: '';
     position: absolute;
-    top: 3px; left: 3px; right: 3px; bottom: 3px;
-    border: 1px solid rgba(43, 43, 43, 0.2);
-    pointer-events: none;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%) rotate(2deg);
+    width: 100px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-left: 1px dashed rgba(0,0,0,0.1);
+    border-right: 1px dashed rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    backdrop-filter: blur(2px);
 }
 
+/* 进出场动画 */
+.hk-lyric-window.show {
+    animation: tapeIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.hk-lyric-window.hide {
+    animation: tapeOut 0.3s ease-in forwards;
+}
+
+@keyframes tapeIn {
+    0% { opacity: 0; transform: translateY(20px) rotate(-5deg); }
+    100% { opacity: 1; transform: translateY(0) rotate(-1deg); }
+}
+@keyframes tapeOut {
+    0% { opacity: 1; transform: translateY(0) rotate(-1deg); }
+    100% { opacity: 0; transform: translateY(10px) rotate(2deg); }
+}
+
+/* --- 内容排版 --- */
 .hk-header-group {
-    font-size: 0.8rem;
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
     color: #666;
-    margin-bottom: 25px;
-    letter-spacing: 1px;
-    width: 100%;
-    text-align: center;
-    position: relative;
+    margin-bottom: 0;
+    height: 30px; /* 占一行 */
+    align-items: center;
 }
-.hk-header-group::after {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 1px;
-    background: #ccc;
-    margin: 8px auto 0;
-}
-.hk-artist { font-weight: 700; }
-.hk-song { font-style: normal; }
+.hk-artist { font-weight: 600; color: #2b2b2b; }
+.hk-song { font-style: italic; color: #555; }
 
 .hk-lyric-body {
-    text-align: center;
-    margin-bottom: 35px;
     width: 100%;
+    margin-bottom: 0;
+    white-space: pre-wrap;
 }
 .hk-lyric-body p {
-    font-size: 1.2rem;
-    font-weight: 500;
-    line-height: 1.8;
-    margin: 10px 0;
-    color: #1a1a1a;
-    text-shadow: 0 0 1px rgba(0,0,0,0.1);
+    margin: 0;
+    line-height: 30px; /* 对齐信纸格线 */
+    font-size: 1.15rem;
+    color: #111;
+    font-weight: 600;
 }
 
 .hk-footer-mark {
-    align-self: flex-end;
-    margin-right: 5px;
-    position: relative;
-}
-.hk-loc-text {
-    font-family: 'Noto Serif SC', 'Songti SC', serif;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #962626;
-    letter-spacing: 2px;
+    height: 30px; /* 占一行 */
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 8px;
+    margin-top: 5px;
 }
-.hk-loc-text::before {
-    content: '';
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border: 1px solid #962626;
-    background-color: transparent;
-    transform: rotate(45deg);
-    box-shadow: inset 0 0 0 1px #f6f4ec, inset 0 0 0 2px #962626;
-    margin-top: -2px;
+/* 文艺印章落款 */
+.hk-loc-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.75rem;
+    color: #c0392b; /* 印泥红 */
+    border: 2px solid #c0392b;
+    padding: 0 8px;
+    border-radius: 4px;
+    line-height: 20px;
+    transform: rotate(-3deg);
+    font-weight: bold;
+    letter-spacing: 2px;
+    background: rgba(192, 57, 43, 0.05);
 }
 
-.hk-lyric-body {
-  white-space: pre-wrap; /* 支持换行 */
-  text-align: center;
+/* --- Marker 样式 (朱砂红点) --- */
+/* 注意：这里加了 !important 是为了防止地图滤镜层级覆盖导致点显示不出来 */
+.hk-marker {
+  width: 16px;
+  height: 16px;
+  background-color: #b92b27;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+  position: relative;
+  cursor: pointer;
+  z-index: 1000 !important; /* 强制层级 */
+  transition: transform 0.2s ease;
+}
+.hk-marker:hover {
+  transform: scale(1.4);
+  background-color: #d6302c;
+  z-index: 1001 !important;
+}
+/* 呼吸动画 */
+.hk-marker::after {
+    content: '';
+    position: absolute;
+    top: -4px; left: -4px;
+    width: 20px; height: 20px;
+    border: 1px solid #b92b27;
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(2); opacity: 0; }
 }
