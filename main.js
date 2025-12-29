@@ -29,7 +29,7 @@ const songLocations = [
   { Name:"芬梨道上", Singer:"杨千嬅", Lyrics:"淩霄閣不吸引\n沿山腰觀景更狠", Location:"淩霄閣", lng:114.154783, lat:22.268594 },
   { Name:"下一站天后", Singer:"Twins", Lyrics:"在百德新街的愛侶\n面上有種顧盼自豪", Location:"百德新街", lng:114.190501, lat:22.277891 },
   { Name:"下一站天后", Singer:"Twins", Lyrics:"站在大丸前\n細心看看我的路", Location:"Fashion Walk（原大丸百貨）", lng:114.190132, lat:22.278468 },
-  { Name:"下一站天后", Singer:"Twins", Lyrics:"站在天后站\n細心看看我的路", Location:"天後站", lng:114.196768, lat:22.279984 },
+  { Name:"下一站天后", Singer:"Twins", Lyrics:"站在大丸前\n細心看看我的路", Location:"天後站", lng:114.196768, lat:22.279984 },
   { Name:"老派约会之必要", Singer:"MC 张天赋", Lyrics:"怎知道霎眼就談到赤柱了\n錯過了\n你我的家", Location:"赤柱", lng:114.214601, lat:22.216211 },
   { Name:"山林道", Singer:"谢安琪", Lyrics:"花花世界 用半生灌溉\n我卻荒廢了 某樹海", Location:"山林道", lng:114.178685, lat:22.299986 },
   { Name:"你说得对", Singer:"容祖儿", Lyrics:"愛無聊獨行尖沙咀", Location:"尖沙咀", lng:114.17719, lat:22.294678 },
@@ -174,3 +174,4 @@ map.on('click', () => {
     closeInfoWin();
 
 });
+
